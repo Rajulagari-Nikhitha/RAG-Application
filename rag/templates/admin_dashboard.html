@@ -27,6 +27,12 @@
         .hidden {
             display: none;
         }
+        .card-header{
+            background-color: #00ACC1;
+        }
+        .card{
+            background-color:#80DEEA;
+        }
 
     </style>
 </head>
@@ -78,6 +84,7 @@
 
                 // Clear the input fields
                 usernameInput.value = '';
+                passwordInput.value='';
                 roleInput.value = 'user'; // Reset role to default
             }
 
@@ -92,20 +99,24 @@
 
         <br><br>
 
-        <!-- Cards for different functionalities -->
-        <div class="row">
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        Add Users
-                    </div>
-                    <div class="card-body">
-                        <button class="btn btn-primary" onclick="toggleVisibility('add-user-form')">Add User</button>
-                        <div id="add-user-form" class="hidden">
-                            <form onsubmit="event.preventDefault(); addUser();">
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            Add Users
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" onclick="toggleVisibility('add-user-form')">Add User</button>
+                            <div id="add-user-form" class="hidden">
+                            <form action="{{ url_for('add_user') }}" method="POST">
                                 <div class="form-group">
                                     <label for="username">Username:</label>
                                     <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password">Password:</label>
+                                    <input type="password" class="form-control" id="password" name="password" required>
                                 </div>
                                 <div class="form-group">
                                     <label for="role">Role:</label>
@@ -116,51 +127,51 @@
                                 </div>
                                 <button type="submit" class="btn btn-primary">Add User</button>
                             </form>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        Users List
-                    </div>
-                    <div class="card-body">
-                        <button class="btn btn-primary" onclick="toggleVisibility('user-list-section')">View Users</button>
-                        <div id="user-list-section" class="hidden">
-                            <h5>Users List</h5>
-                            <ul class="list-group" id="user-list">
-                                <!-- User items will be added here -->
-                            </ul>
+        
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            Users List
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" onclick="toggleVisibility('user-list-section')">View Users</button>
+                            <div id="user-list-section" class="hidden">
+                                <h5>Users List</h5>
+                                <ul class="list-group" id="user-list">
+                                    <!-- User items will be added here -->
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header">
-                        Uploaded Files
-                    </div>
-                    <div class="card-body">
-                        <button class="btn btn-primary" onclick="toggleVisibility('uploaded-files-section')">View Uploaded Files</button>
-                        <div id="uploaded-files-section" class="hidden">
-                            <h5>Uploaded Files</h5>
-                            <ul class="list-group">
-                                {% for file in files %}
-                                    <li class="list-group-item">
-                                        <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
-                                    </li>
-                                {% endfor %}
-                            </ul>
+        
+                <div class="col-md-4">
+                    <div class="card">
+                        <div class="card-header">
+                            Uploaded Files
+                        </div>
+                        <div class="card-body">
+                            <button class="btn btn-primary" onclick="toggleVisibility('uploaded-files-section')">View Uploaded Files</button>
+                            <div id="uploaded-files-section" class="hidden">
+                                <h5>Uploaded Files</h5>
+                                <ul class="list-group">
+                                    {% for file in files %}
+                                        <li class="list-group-item">
+                                            <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-
-        <br>
+        <br><br>
 
         <!-- Form for file upload -->
         <div class="card">
