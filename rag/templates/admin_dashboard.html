@@ -8,11 +8,15 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <!-- Include custom CSS -->
     <style>
+        body{
+            background-color: #90A4AE;
+        }
         .container {
             margin-top: 20px;
         }
         .logout-btn {
-            margin-top: 10px;
+            margin-top: 0px;
+            margin-left: 1000px;
         }
         .alert {
             position: fixed;
@@ -20,93 +24,162 @@
             right: 20px;
             z-index: 1050;
         }
+        .hidden {
+            display: none;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Welcome, {{ username }}!</h1>
-   <!-- Flash messages -->
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-    <div class="alert alert-dismissible fade show" role="alert" id="flash-message">
-        {% for category, message in messages %}
-            <div class="alert alert-{{ category }}">{{ message }}</div>
-        {% endfor %}
-        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-            <span aria-hidden="true">&times;</span>
-        </button>
-    </div>
-{% endif %}
-{% endwith %}
 
-<script>
-// Automatically hide the flash message after 2 seconds
-window.onload = function() {
-    const flashMessage = document.getElementById('flash-message');
-    if (flashMessage) {
-        setTimeout(() => {
-            // Use Bootstrap's alert 'close' class to fade out the message
-            flashMessage.classList.remove('show');
-            flashMessage.classList.add('fade');
-            // Optionally remove the element entirely after it's hidden
-            setTimeout(() => {
-                flashMessage.remove();
-            }, 500); // Additional delay to wait for the fade-out effect
-        }, 2000); // Hide after 2 seconds
-    }
-};
-</script>
+        <!-- Flash messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            <div class="alert alert-dismissible fade show" role="alert" id="flash-message">
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }}">{{ message }}</div>
+                {% endfor %}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        {% endif %}
+        {% endwith %}
 
-        
+        <script>
+            // Automatically hide the flash message after 2 seconds
+            window.onload = function() {
+                const flashMessage = document.getElementById('flash-message');
+                if (flashMessage) {
+                    setTimeout(() => {
+                        flashMessage.classList.remove('show');
+                        flashMessage.classList.add('fade');
+                        setTimeout(() => {
+                            flashMessage.remove();
+                        }, 500);
+                    }, 2000);
+                }
+            };
+
+            function addUser() {
+                const usernameInput = document.getElementById('username');
+                const roleInput = document.getElementById('role');
+                const username = usernameInput.value;
+                const role = roleInput.value;
+
+                // Create a new list item for the user
+                const userList = document.getElementById('user-list');
+                const listItem = document.createElement('li');
+                listItem.className = 'list-group-item';
+                listItem.textContent = `${username} (${role})`;
+                userList.appendChild(listItem);
+
+                // Clear the input fields
+                usernameInput.value = '';
+                roleInput.value = 'user'; // Reset role to default
+            }
+
+            function toggleVisibility(id) {
+                const component = document.getElementById(id);
+                component.classList.toggle('hidden');
+            }
+        </script>
+
         <!-- Logout Button -->
         <a href="{{ url_for('logout') }}" class="btn btn-danger logout-btn">Logout</a>
-        
+
         <br><br>
-        
-        <!-- Form for adding users or admins -->
-        <form action="{{ url_for('add_user') }}" method="POST">
-            <div class="form-group">
-                <label for="username">Username:</label>
-                <input type="text" class="form-control" id="username" name="username" required>
+
+        <!-- Cards for different functionalities -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Add Users
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="toggleVisibility('add-user-form')">Add User</button>
+                        <div id="add-user-form" class="hidden">
+                            <form onsubmit="event.preventDefault(); addUser();">
+                                <div class="form-group">
+                                    <label for="username">Username:</label>
+                                    <input type="text" class="form-control" id="username" name="username" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="role">Role:</label>
+                                    <select class="form-control" id="role" name="role">
+                                        <option value="user">User</option>
+                                        <option value="admin">Admin</option>
+                                    </select>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Add User</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="password">Password:</label>
-                <input type="password" class="form-control" id="password" name="password" required>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Users List
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="toggleVisibility('user-list-section')">View Users</button>
+                        <div id="user-list-section" class="hidden">
+                            <h5>Users List</h5>
+                            <ul class="list-group" id="user-list">
+                                <!-- User items will be added here -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label for="role">Role:</label>
-                <select class="form-control" id="role" name="role">
-                    <option value="user">User</option>
-                    <option value="admin">Admin</option>
-                </select>
+
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header">
+                        Uploaded Files
+                    </div>
+                    <div class="card-body">
+                        <button class="btn btn-primary" onclick="toggleVisibility('uploaded-files-section')">View Uploaded Files</button>
+                        <div id="uploaded-files-section" class="hidden">
+                            <h5>Uploaded Files</h5>
+                            <ul class="list-group">
+                                {% for file in files %}
+                                    <li class="list-group-item">
+                                        <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
+                                    </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button type="submit" class="btn btn-primary">Add User/Admin</button>
-        </form>
-        
+        </div>
+
         <br>
-        
+
         <!-- Form for file upload -->
-        <form action="{{ url_for('add_file') }}" method="POST" enctype="multipart/form-data">
-            <div class="form-group">
-                <label for="file">Select File:</label>
-                <input type="file" class="form-control-file" id="file" name="file" required>
+        <div class="card">
+            <div class="card-header">
+                Upload File
             </div>
-            <button type="submit" class="btn btn-primary">Upload File</button>
-        </form>
-        
-        <br>
-        
-        <!-- List of uploaded files -->
-        <h2>Uploaded Files</h2>
-        <ul class="list-group">
-            {% for file in files %}
-                <li class="list-group-item">
-                    <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
-                </li>
-            {% endfor %}
-        </ul>
+            <div class="card-body">
+                <form action="{{ url_for('add_file') }}" method="POST" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label for="file">Select File:</label>
+                        <input type="file" class="form-control-file" id="file" name="file" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary">Upload File</button>
+                </form>
+            </div>
+        </div>
+
     </div>
-    
+
     <!-- Include Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
