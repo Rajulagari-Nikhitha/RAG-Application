@@ -1,176 +1,151 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
-    <!-- Include Bootstrap CSS -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Include custom CSS -->
     <style>
-        body{
-            background-color: #90A4AE;
+        body {
+            background-color: #D1F4F4;
         }
+
         .container {
             margin-top: 20px;
         }
+
         .logout-btn {
             margin-top: 0px;
             margin-left: 1000px;
         }
+
         .alert {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1050;
         }
+
         .hidden {
             display: none;
         }
-        .card-header{
-            background-color: #00ACC1;
-        }
-        .card{
-            background-color:#80DEEA;
+
+        .card-header {
+            background-color: #80d1f7;
         }
 
+        .card {
+            background-color: #e4e9f0;
+            margin-bottom: 20px;
+        }
+
+        button[class="btn btn-default"] {
+            background-color: hsl(222, 96%, 81%);
+        }
+
+        .dashboard {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+        }
+
+        .dashboard .card {
+            flex: 1 1 300px;
+            margin: 10px;
+        }
+
+        @media (max-width: 768px) {
+            .dashboard .card {
+                flex: 1 1 100%;
+            }
+        }
     </style>
 </head>
+
 <body>
     <div class="container">
-        <h1>Welcome, {{ username }}!</h1>
+        <h1>Welcome, Admin!</h1>
 
         <!-- Flash messages -->
         {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
-            <div class="alert alert-dismissible fade show" role="alert" id="flash-message">
-                {% for category, message in messages %}
-                    <div class="alert alert-{{ category }}">{{ message }}</div>
-                {% endfor %}
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
+        <div class="alert alert-dismissible fade show" role="alert" id="flash-message">
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
         {% endif %}
         {% endwith %}
 
-        <script>
-            // Automatically hide the flash message after 2 seconds
-            window.onload = function() {
-                const flashMessage = document.getElementById('flash-message');
-                if (flashMessage) {
-                    setTimeout(() => {
-                        flashMessage.classList.remove('show');
-                        flashMessage.classList.add('fade');
-                        setTimeout(() => {
-                            flashMessage.remove();
-                        }, 500);
-                    }, 2000);
-                }
-            };
-
-            function addUser() {
-                const usernameInput = document.getElementById('username');
-                const roleInput = document.getElementById('role');
-                const username = usernameInput.value;
-                const role = roleInput.value;
-
-                // Create a new list item for the user
-                const userList = document.getElementById('user-list');
-                const listItem = document.createElement('li');
-                listItem.className = 'list-group-item';
-                listItem.textContent = `${username} (${role})`;
-                userList.appendChild(listItem);
-
-                // Clear the input fields
-                usernameInput.value = '';
-                passwordInput.value='';
-                roleInput.value = 'user'; // Reset role to default
-            }
-
-            function toggleVisibility(id) {
-                const component = document.getElementById(id);
-                component.classList.toggle('hidden');
-            }
-        </script>
-
-        <!-- Logout Button -->
         <a href="{{ url_for('logout') }}" class="btn btn-danger logout-btn">Logout</a>
 
         <br><br>
 
-        <div class="container">
-            <div class="row">
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            Add Users
-                        </div>
-                        <div class="card-body">
-                            <button class="btn btn-primary" onclick="toggleVisibility('add-user-form')">Add User</button>
-                            <div id="add-user-form" class="hidden">
-                            <form action="{{ url_for('add_user') }}" method="POST">
-                                <div class="form-group">
-                                    <label for="username">Username:</label>
-                                    <input type="text" class="form-control" id="username" name="username" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="password">Password:</label>
-                                    <input type="password" class="form-control" id="password" name="password" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="role">Role:</label>
-                                    <select class="form-control" id="role" name="role">
-                                        <option value="user">User</option>
-                                        <option value="admin">Admin</option>
-                                    </select>
-                                </div>
-                                <button type="submit" class="btn btn-primary">Add User</button>
-                            </form>
+        <div class="dashboard">
+            <div class="card">
+                <div class="card-header">
+                    Add Users
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-default" onclick="toggleVisibility('add-user-form')">Add User</button>
+                    <div id="add-user-form" class="hidden">
+                        <form id="formuser">
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" class="form-control" id="username" name="username" required>
                             </div>
-                        </div>
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="password" class="form-control" id="password" name="password" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="role">Role:</label>
+                                <select class="form-control" id="role" name="role">
+                                    <option value="user">User</option>
+                                    <option value="admin">Admin</option>
+                                </select>
+                            </div>
+                            <button id="add_user_btn" type="submit" class="btn btn-default">Add User</button>
+                        </form>
                     </div>
                 </div>
-        
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            Users List
-                        </div>
-                        <div class="card-body">
-                            <button class="btn btn-primary" onclick="toggleVisibility('user-list-section')">View Users</button>
-                            <div id="user-list-section" class="hidden">
-                                <h5>Users List</h5>
-                                <ul class="list-group" id="user-list">
-                                    <!-- User items will be added here -->
-                                </ul>
-                            </div>
-                        </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    Users List
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-default" onclick="toggleVisibility('user-list-section')">View Users</button>
+                    <div id="user-list-section" class="hidden">
+                        <h5>Users List</h5>
+                        <ul class="list-group" id="user-list">
+                            <!-- User items will be added here -->
+                        </ul>
                     </div>
                 </div>
-        
-                <div class="col-md-4">
-                    <div class="card">
-                        <div class="card-header">
-                            Uploaded Files
-                        </div>
-                        <div class="card-body">
-                            <button class="btn btn-primary" onclick="toggleVisibility('uploaded-files-section')">View Uploaded Files</button>
-                            <div id="uploaded-files-section" class="hidden">
-                                <h5>Uploaded Files</h5>
-                                <ul class="list-group">
-                                    {% for file in files %}
-                                        <li class="list-group-item">
-                                            <a href="{{ url_for('download_file', filename=file) }}">{{ file }}</a>
-                                        </li>
-                                    {% endfor %}
-                                </ul>
-                            </div>
-                        </div>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    Uploaded Files
+                </div>
+                <div class="card-body">
+                    <button class="btn btn-default" onclick="toggleVisibility('uploaded-files-section')">View Uploaded
+                        Files</button>
+                    <div id="uploaded-files-section" class="hidden">
+                        <h5>Uploaded Files</h5>
+                        <ul class="list-group" id="fileslist">
+                        </ul>
                     </div>
                 </div>
             </div>
         </div>
+
         <br><br>
 
         <!-- Form for file upload -->
@@ -184,16 +159,108 @@
                         <label for="file">Select File:</label>
                         <input type="file" class="form-control-file" id="file" name="file" required>
                     </div>
-                    <button type="submit" class="btn btn-primary">Upload File</button>
+                    <button type="submit" class="btn btn-default">Upload File</button>
                 </form>
             </div>
         </div>
-
     </div>
 
-    <!-- Include Bootstrap JS and dependencies -->
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        // Automatically hide the flash message after 2 seconds
+        window.onload = function () {
+            const flashMessage = document.getElementById('flash-message');
+            if (flashMessage) {
+                setTimeout(() => {
+                    flashMessage.classList.remove('show');
+                    flashMessage.classList.add('fade');
+                    setTimeout(() => {
+                        flashMessage.remove();
+                    }, 500);
+                }, 2000);
+            }
+        };
+
+        document.getElementById('formuser').addEventListener('submit', function (event) {
+            event.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+
+            fetch('/add_user', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    admin_username: 'admin',
+                    admin_password: 'admin123',
+                    username: username,
+                    password: password,
+                    role: role
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('User added successfully!');
+                        document.getElementById('username').value = '';
+                        document.getElementById('password').value = '';
+                    } else {
+                        alert('Failed to add user: ' + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+        function fetchUsers() {
+            fetch('/get_users')
+                .then(response => response.json())
+                .then(data => {
+                    const userList = document.getElementById('user-list');
+                    userList.innerHTML = '';
+                    data.forEach(user => {
+                        const listItem = document.createElement('li');
+                        listItem.className = 'list-group-item';
+                        listItem.textContent = `${user.username}`;
+                        userList.appendChild(listItem);
+                    });
+                })
+                .catch(error => console.error('Error fetching users:', error));
+        }
+        function fetchUploadedFiles() {
+            fetch('/get_files')
+                .then(response => response.json())
+                .then(data => {
+                    const uploadedFilesList = document.getElementById('fileslist');
+                    uploadedFilesList.innerHTML = '';  
+
+                    if (data.length === 0) {
+                        uploadedFilesList.innerHTML = '<li class="list-group-item">No files uploaded</li>';
+                    } else {
+                        data.forEach(file => {
+                            const listItem = document.createElement('li');
+                            listItem.className = 'list-group-item';
+                            listItem.innerHTML = `<a href="/uploads/${file.filename}" target="_blank">${file.filename}</a>`;
+                            uploadedFilesList.appendChild(listItem);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error fetching files:', error));
+        }
+        function toggleVisibility(id) {
+            const component = document.getElementById(id);
+            component.classList.toggle('hidden');
+            fetchUsers();
+            fetchUploadedFiles();
+        }
+
+
+    </script>
 </body>
+
 </html>
