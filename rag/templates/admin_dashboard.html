@@ -6,6 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Dashboard</title>
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+
     <style>
         body {
             background-color: #D1F4F4;
@@ -60,6 +62,26 @@
                 flex: 1 1 100%;
             }
         }
+
+        .action-icon {
+            font-size: 1.2em;
+            color: #007bff;
+            margin-left: 10px;
+        }
+
+        .user-action-section {
+            display: flex;
+            gap: 10px;
+        }
+
+        .hidden {
+            display: none;
+        }
+        #delete{
+            display:flex;
+
+        }
+
     </style>
 </head>
 
@@ -81,7 +103,7 @@
         {% endif %}
         {% endwith %}
 
-        <a href="{{ url_for('logout') }}" class="btn btn-danger logout-btn">Logout</a>
+        <a href="{{ url_for('logout') }}" class="btn btn-primary logout-btn">Logout</a>
 
         <br><br>
 
@@ -169,7 +191,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
-        // Automatically hide the flash message after 2 seconds
         window.onload = function () {
             const flashMessage = document.getElementById('flash-message');
             if (flashMessage) {
@@ -216,6 +237,9 @@
                     console.error('Error:', error);
                 });
         });
+        let selectedUser = null;
+
+
 
         function fetchUsers() {
             fetch('/get_users')
@@ -223,35 +247,110 @@
                 .then(data => {
                     const userList = document.getElementById('user-list');
                     userList.innerHTML = '';
+
                     data.forEach(user => {
                         const listItem = document.createElement('li');
-                        listItem.className = 'list-group-item';
-                        listItem.textContent = `${user.username}`;
+                        listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        listItem.innerHTML = `
+                    <span>${user.username}</span>
+                    <i class="fas fa-ellipsis-v action-icon" style="cursor: pointer;" onclick="showUserActions('${user.username}', this)"></i>
+                `;
+                        const actionDiv = document.createElement('div');
+                        actionDiv.classList.add('user-action-section', 'hidden', 'mt-2');
+                        actionDiv.innerHTML = `
+                    <button class="btn btn-danger btn-sm" onclick="removeUser('${user.username}', this)">Remove</button>
+                    <button class="btn btn-secondary btn-sm" onclick="cancelAction(this)">Cancel</button>
+                `;
+
+                        listItem.appendChild(actionDiv);
                         userList.appendChild(listItem);
                     });
                 })
                 .catch(error => console.error('Error fetching users:', error));
         }
+
+
+        function showUserActions(username, iconElement) {
+            const allActionSections = document.querySelectorAll('.user-action-section');
+            allActionSections.forEach(section => section.classList.add('hidden'));
+            const actionSection = iconElement.nextElementSibling;
+            actionSection.classList.remove('hidden');
+        }
+        function removeUser(username, buttonElement) {
+    // Send a request to delete the user without requiring admin credentials
+    fetch('/delete_user', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            username: username
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('User removed successfully!');
+            fetchUsers(); // Refresh the user list
+        } else {
+            alert('Failed to remove user: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error removing user:', error);
+    });
+}
+
+function cancelAction(buttonElement) {
+    const actionSection = buttonElement.parentElement;
+    actionSection.classList.add('hidden'); 
+}
+
         function fetchUploadedFiles() {
             fetch('/get_files')
                 .then(response => response.json())
                 .then(data => {
                     const uploadedFilesList = document.getElementById('fileslist');
-                    uploadedFilesList.innerHTML = '';  
+                    uploadedFilesList.innerHTML = '';
 
                     if (data.length === 0) {
                         uploadedFilesList.innerHTML = '<li class="list-group-item">No files uploaded</li>';
                     } else {
                         data.forEach(file => {
                             const listItem = document.createElement('li');
-                            listItem.className = 'list-group-item';
-                            listItem.innerHTML = `<a href="/uploads/${file.filename}" target="_blank">${file.filename}</a>`;
+                            listItem.className = 'list-group-item d-flex justify-content-between align-items-center';
+                            listItem.innerHTML = `<a href="/uploads/${file.filename}" target="_blank">${file.filename}</a>
+                            <i class="fas fa-trash-alt action-icon" id="delete" style="cursor: pointer;" onclick="deleteFile('${file.filename}', this)"></i>`;
                             uploadedFilesList.appendChild(listItem);
                         });
                     }
                 })
                 .catch(error => console.error('Error fetching files:', error));
         }
+        function deleteFile(filename, iconElement) {
+    fetch('/delete_file', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+            filename: filename
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('File deleted successfully!');
+            fetchUploadedFiles(); // Refresh the file list
+        } else {
+            alert('Failed to delete file: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting file:', error);
+    });
+}
+
         function toggleVisibility(id) {
             const component = document.getElementById(id);
             component.classList.toggle('hidden');
